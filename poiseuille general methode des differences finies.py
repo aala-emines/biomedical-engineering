@@ -43,6 +43,12 @@ for i in range(0,(n1)*(n2)*3,3):#remplissage par ligne
 
         a[i + 2][int(i / 3) + 2 * n1 * n2] = 1
         b[i + 2] = p1
+    # sur les parois:
+    elif inVout[int(i / 3)] or int(i / 3) < n1 or int(i / 3) >= (n2 - 1) * (n1):  # vérifier par un exemple n2=3,n1=2:
+        a[i][int(i / 3)] = 1
+        a[i + 1][int(i / 3) + n1 * n2] = 1
+        a[i + 2][int(i / 3) + 2 * n1 * n2] = 1
+        b[i + 2] = p1 + (p2 - p1) * (int(i / 3) % n1) / (n1 - 1)  # je suppose que sur les parois la pression varie linéairement
     # sur la sortie
     elif int(i / 3) % n1 == n1 - 1:
         a[i][int(i / 3) + n1 * n2] = -1
@@ -57,12 +63,6 @@ for i in range(0,(n1)*(n2)*3,3):#remplissage par ligne
 
         a[i + 2][int(i / 3) + 2 * n1 * n2] = 1
         b[i + 2] = p2
-    # sur les parois:
-    elif inVout[int(i / 3)] or int(i / 3) < n1 or int(i / 3) >= (n2 - 1) * (n1):  # vérifier par un exemple n2=3,n1=2:
-        a[i][int(i / 3)] = 1
-        a[i + 1][int(i / 3) + n1 * n2] = 1
-        a[i + 2][int(i / 3) + 2 * n1 * n2] = 1
-        b[i + 2] = p1 + (p2 - p1) * (int(i / 3) % n1) / (n1 - 1)  # je suppose que sur les parois la pression varie linéairement
     # maintenant on remplit la matrice pour l'intérieur de la grille
     else:
         # on se place en un point d'indice i/3
@@ -106,14 +106,6 @@ ax.scatter(x, y, color='0.5', s=1)
 fig.colorbar(q)
 plt.show()
 
-'''
-y,x = np.mgrid[0:l1:n1, 0:l2:n2]
-fig,ax = plt.subplots()
-plt.streamplot(x, y, ux, uy, density=1)
-strm = ax.streamplot(x, y, ux, uy, color = ((ux**2+uy**2)**(0.5)), linewidth = 2, cmap ='autumn')
-fig.colorbar(strm.lines)
-plt.show()
-'''
 # fig,ax = plt.subplots()
 # row = np.linspace(0,n1,n1)
 # column = np.linspace(0,n2,n2)
