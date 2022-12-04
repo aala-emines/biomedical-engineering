@@ -1,9 +1,8 @@
-
 import numpy as np
 import matplotlib.pyplot as plt
-L = 6e-2
+L = 6e-3
 N = 30
-l = 2e-2
+l = 2e-3
 M = 30
 P1 = 1 + 0.0162
 P2 = 0
@@ -382,20 +381,21 @@ R4 = R4[:len(Resistance)]
 L3 = L3[:len(Resistance)]
 plt.plot(np.array(R)*(l2/n2)*10**(3),np.log(Resistance),label = "log(R_simulé)")
 plt.xlabel('Hauteur de la deformation en mm')
-plt.plot(np.array(L3) *(l2/n2)*10**(3),np.log(R3),label = "log(R_poiseuille)")
+plt.plot(np.array(R) *(l2/n2)*10**(3),np.log(R3),label = "log(R_poiseuille)")
 plt.xlabel('Hauteur de la deformation en mm')
-plt.title("Largeur fixée de la deformation ="+str(diam(l2,arrety,n2)*10*(3)) + "mm, graphe obtenue pour l1,l2=  " + str(l1*10**(2))+" cm, "+str(l2*10**(2))+" cm")
+plt.title("Largeur fixée de la deformation ="+str(round(diam(l2,arrety,n2)*10*(3),2)) + "mm, graphe obtenue pour l1,l2=  " + str(l1*10**(3))+" mm, "+str(l2*10**(3))+" mm")
 plt.plot(np.array(L3) *(l2/n2)*10**(3),np.log(R4),label = "log(R_tube_centrale)")
 plt.grid()
 plt.legend()
 fig = plt.figure()
 ax = fig.add_subplot()
-
-quotient1 = np.log([Resistance[i]/R3[i] for i in range(len(Resistance))])
-quotient2 = np.log([Resistance[i]/R4[i] for i in range(len(R4))])
-ax.plot(np.array(R)*(l2/n2), quotient1, label = "log(R_simulé / R_poiseuille)")
-ax.plot(np.array(R)*(l2/n2), quotient2, label = " log(R_simulé / R_tube_centrale)")
-plt.title("Largeur fixée de la deformation ="+str(diam(l2,arrety,n2)*10*(3)) + "mm, graphe obtenue pour l1,l2=  " + str(l1*10**(2))+" cm, "+str(l2*10**(2))+" cm")
+R=R[:len(R)-1]
+quotient1 = np.log([Resistance[i]/R3[i] for i in range(len(Resistance)-1)])
+quotient2 = np.log([Resistance[i]/R4[i+1] for i in range(len(R4)-1)])
+plt.xlabel('Hauteur de la deformation en mm')
+ax.plot(np.array(R)*(l2/n2)*10**(3), quotient1, label = "log(R_simulé / R_poiseuille)")
+ax.plot(np.array(R)*(l2/n2)*10**(3), quotient2, label = " log(R_simulé / R_tube_centrale)")
+plt.title("Largeur fixée de la deformation ="+str(round(diam(l2,arrety,n2)*10*(3),2)) + "mm, graphe obtenue pour l1,l2=  " + str(l1*10**(3))+" mm, "+str(l2*10**(3))+" mm")
 ax.set_yticks(np.arange(0, max((max(quotient2), max(quotient1)))+1, 1.0)) # setting the tick
 plt.grid()
 plt.legend()
