@@ -1,0 +1,174 @@
+import sys
+import numpy as np
+import matplotlib.pyplot as plt
+'''
+L=int(input("entrer la longueur du tuyau "))
+N=int(input("entrez la subdivision de la longueur "))
+l=int(input("entrer la largeur du tuyau "))
+M=int(input("entrez la subdivision de la largeur "))
+P1=int(input("entrez la pression d'entrée "))
+P2=int(input("entrez la pression de sortie "))
+eta=float(input("entrez la viscosité de votre fluide "))
+'''
+L = 6e-2
+N = 50
+l = 2e-2
+M = 50
+P1 = 0.016
+P2 = 0
+eta = 0.000018
+C = (P2-P1)/(eta*L)
+
+DX=L/N
+DY=l/M
+D=((N+1)*(M+1))
+A=np.zeros((3*D,3*D))
+B=np.zeros((3*D,1))
+
+for i in range(0,D) :
+    if i%( N + 1 ) == 0 :
+
+        A[ i ][ i ] = 1
+        A[ i ][ i + N ] = -1
+        B[ i ][ 0 ] = 0
+        #periodicite entre les bords gauche et droit du domaine Ux
+
+        A[ i + D][ i + D ] = 1
+        A[ i + D][ i + D + N ] = -1
+        B[i + D ][0] = 0
+        #periodicite entre les bords gauche et droit du domaine Uy
+
+        A[ i + 2*D ][ i + 2*D ] = 1
+        B[ i + 2*D ][ 0 ] = P1
+        #pression sur le bord gauche du domaine
+
+    elif i%( N + 1 ) == N :
+
+        A[ i ][ i ] = 1/DX
+        A[ i ][ i - 1 ] = -1/DX
+        A[ i ][ i - N ] = 1/DX
+        A[ i ][ i - N + 1 ] = -1/DX
+        B[ i ][0] = 0
+        #periodicite de la derivé entre les bords gauche et droit du domaine Ux
+
+        A[ i + D ][ i + D ] = 1/DX
+        A[ i + D ][ i + D - 1 ] = -1/DX
+        A[ i + D ][ i + D - N ] = 1/DX
+        A[ i + D ][ i + D - N + 1 ] = -1/DX
+        B[i + D][0] = 0
+        # periodicite de la derivé entre les bords gauche et droit du domaine Uy
+
+        A[ i + 2*D ][ i + 2*D ] = 1
+        B[ i + 2*D ][ 0 ] = P2
+        # pression sur le bord droit du domaine
+    
+
+
+    elif i <= N :
+
+        A[ i ][ i ] = 1
+        B[ i ][ 0 ] = 0
+        #Ux = 0
+
+        A[ i + D ][ i + D ] = 1
+        B[ i + D ][0] = 0
+        #Uy = 0
+
+        A[ i + 2*D ][ i + D ] = -1/DY
+        A[ i + 2*D ][ i + D + N + 1 ] = 1/DY
+        B[i + (2 * D)][0] = 0
+        #derivee normale de la vitesse normale a la frontiere du domaine s’annule
+
+    elif i >= (M*( N + 1 )) :
+
+        A[ i ][ i ] = 1
+        B[ i ][0] = 0
+        #Ux = 0
+
+        A[ i + D ][ i + D ] = 1
+        B[i + D][0] = 0
+        #Uy = 0
+
+        A[ i + 2*D ][ i + D ] = 1/DY
+        A[ i + 2*D ][ i + D - N - 1 ] = -1/DY
+        B[i + (2 * D)][0] = 0
+        #derivee normale de la vitesse normale a la frontiere du domaine s’annule
+
+    else :
+        A[i][i - N - 1] = 1 / (DY * DY)
+        A[i][i - 1] = 1 / (DX * DX)
+        A[i][i] = - (2 / (DX * DX)) - (2 / (DY * DY))
+        A[i][i + 1] = 1 / (DX * DX)
+        A[i][i + N + 1] = 1 / (DY * DY)
+        A[i][2*D + i + 1] = -1 / (2 * eta * DX)
+        A[i][2*D + i - 1] = 1 / (2 * eta * DX)
+        B[i ][0] = 0
+        # premiere equation laplacien(Ux) - (1/eta)*grad(Px)
+
+        A[i + D][D + i - N - 1] = 1 / (DY * DY)
+        A[i + D][D + i - 1] = 1 / (DX * DX)
+        A[i + D][D + i] = - (2 / (DX * DX)) - (2 / (DY * DY))
+        A[i + D][D + i + 1] = 1 / (DX * DX)
+        A[i + D][D + i + N + 1] = 1 / (DY * DY)
+        A[i + D][2 * D + i + N + 1] = -1 / (2 * eta * DY)
+        A[i + D][2 * D + i - N - 1] = 1 / (2 * eta * DY)
+        B[i + D][0] = 0
+        # deuxieme equation laplacien(Uy) - (1/eta)*grad(Py)
+
+        A[i + 2*D][2*D + i - N - 1] = 1 / (DY * DY)
+        A[i + 2*D][2*D + i - 1] = 1 / (DX * DX)
+        A[i + 2*D][2*D + i] = - (2 / (DX * DX)) - (2 / (DY * DY))
+        A[i + 2*D][2*D + i + 1] = 1 / (DX * DX)
+        A[i + 2*D][2*D + i + N + 1] = 1 / (DY * DY)
+        B[i + 2*D][0] =  0
+        # laplacien(P) = 0
+
+
+
+X = np.dot(np.linalg.inv(A),B)
+X = np.reshape(X,((3*(M+1)),N+1))
+Ux=np.zeros(((M+1),(N+1)))
+Uy=np.zeros(((M+1),(N+1)))
+P =np.zeros(((M+1),(N+1)))
+
+for i in range(0,M+1) :
+    for j in range(0,N+1) :
+        Ux[i][j] = X[i][j]
+        Uy[i][j] = X[i+(M+1)][j]
+        P[i][j] = X[i+2*(M+1)][j]
+
+
+x = np.linspace(0, L, (N+1))
+y = np.linspace(0, l, (M+1))
+'''
+X, Y = np.meshgrid(x, y)
+plt.pcolormesh(X, Y, Ux)
+plt.colorbar()
+plt.title('Allure de Ux')
+plt.show()
+
+plt.pcolormesh(X, Y, Uy)
+plt.colorbar()
+plt.title('Allure de Uy')
+plt.show()
+
+plt.pcolormesh(X, Y, P)
+plt.colorbar()
+plt.title('Allure de P')
+plt.show()
+'''
+Ysimule =np.zeros(((M+1),1))
+for i in range(0,(M+1)):
+    Ysimule[i][0] = Ux[i][0]
+print(Ysimule)
+yreal = (y**2)*(C/2) - (l*C/2)*y
+print(" ")
+print(yreal)
+
+plt.plot(y,Ysimule,"b:o",label="Le profil de la vitesse obtenu par simulation")
+plt.plot(y,yreal,"r-",label="Le profil de la vitesse theorique")
+plt.xlabel("largeur y du tuyau en mm")
+plt.ylabel("la vitesse Ux")
+plt.title("Comparaison entre la theorie et la simulation")
+plt.legend()
+plt.show()
